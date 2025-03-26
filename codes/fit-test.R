@@ -1,12 +1,14 @@
-# load packages
+# Load packages
 library(openVA)
 library(MCMCpack)
 source("functions.R")
+
 # Create output directory if it does not exist
 if (!dir.exists("rda")) {
   dir.create("rda")
 }
-# read PHMRC data from local CSV file
+
+# Read PHMRC data from local CSV file
 PHMRC <- read.csv("../PHMRC/IHME_PHMRC_VA_DATA_ADULT_Y2013M09D11_0.csv")
 causes <- as.character(unique(PHMRC$gs_text34))
 C <- length(causes)  # number of causes
@@ -18,9 +20,9 @@ C <- length(causes)  # number of causes
 #   - Records with sites in c("AP", "Bohol", "Dar", "Mexico", "Pemba") are used for labelled training.
 #   The final training set is the union of the labelled training and unlabelled "UP" records.
 
-for(rep in 1:1) {
+for(rep in 1:2) {
   
-  # For the first 500 replications, use HCE; for the next 500, do not.
+  # For the first replication, use HCE; for later replications, do not.
   if(rep > 1) {
     rep_index <- rep - 1
     has.HCE <- FALSE
@@ -146,7 +148,18 @@ for(rep in 1:1) {
   ccc <- getCCC(est = topcause[,2], truth = as.character(test$gs_text34), causes = causes)
   names(ccc) <- causes
   
-  metrics <- list(ccc = ccc, csmfacc = csmfacc, cccsmfacc = cccsmfacc)
+  # Compute individual-level accuracy: the proportion of individuals with correct top cause assignment
+  indiv_accuracy <- mean(topcause[,2] == as.character(test$gs_text34))
+  
+  metrics <- list(ccc = ccc, csmfacc = csmfacc, cccsmfacc = cccsmfacc, indiv_accuracy = indiv_accuracy)
+  
+  # --- Output accuracy metrics to the console ---
+  cat("CSMF Accuracy:", csmfacc, "\n")
+  cat("Normalized CCCSMF Accuracy:", cccsmfacc, "\n")
+  cat("Cause-specific Concordance (CCC):\n")
+  print(ccc)
+  cat("Individual Level Accuracy:", indiv_accuracy, "\n")
+  # --- End output ---
   
   # Optionally, to check convergence issues, you can run:
   # diag_info <- csmf.diag(insilico)
