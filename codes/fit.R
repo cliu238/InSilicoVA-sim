@@ -3,8 +3,8 @@ library(openVA)
 library(MCMCpack)
 source("functions.R")
 
-# read PHMRC data from online
-PHMRC <- read.csv(getPHMRC_url("adult"))
+# read PHMRC data from local CSV file
+PHMRC <- read.csv("../PHMRC/IHME_PHMRC_VA_DATA_ADULT_Y2013M09D11_0.csv")
 causes <- as.character(unique(PHMRC$gs_text34))
 N <- dim(PHMRC)[1] # 7841
 N.train <- round(N * 0.75) # 5881

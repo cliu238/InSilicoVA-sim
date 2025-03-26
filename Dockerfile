@@ -3,9 +3,9 @@ FROM rocker/r-base:latest
 
 # Metadata
 LABEL maintainer="your.email@example.com"
-LABEL description="Docker container for InSilicoVA-sim project with R, Java, and required packages."
+LABEL description="Docker container for development of InSilicoVA-sim (R, Java, and required packages)"
 
-# Install OpenJDK 11 and other system dependencies
+# Install OpenJDK 11 and system dependencies
 RUN apt-get update && apt-get install -y \
     openjdk-11-jdk \
     libcurl4-openssl-dev \
@@ -18,15 +18,18 @@ RUN apt-get update && apt-get install -y \
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV LD_LIBRARY_PATH=$JAVA_HOME/lib/server
 
-# Reconfigure Java for R
+# Reconfigure R to use the new Java settings
 RUN R CMD javareconf
 
 # Install required R packages (rJava, openVA, MCMCpack, xtable)
 RUN R -e "install.packages(c('rJava', 'openVA', 'MCMCpack', 'xtable'), repos='https://cran.rstudio.com')"
-
-# Copy the project into the container and set the working directory
 COPY . /InSilicoVA-sim
+
+# Declare a volume so that you can mount your working directory for development
+VOLUME ["/InSilicoVA-sim"]
+
+# Set the working directory
 WORKDIR /InSilicoVA-sim
 
-# Default command (launch bash)
+# Default command: start an interactive bash shell
 CMD ["bash"]
